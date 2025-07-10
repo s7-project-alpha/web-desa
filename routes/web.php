@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\VisionMissionValueController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -13,8 +14,14 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
+// Route awal yang baru
 Route::get('/', function () {
-    return redirect()->route('login');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -28,3 +35,21 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Routes untuk Vision Mission Values (dalam group auth middleware)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('vision-mission-values', VisionMissionValueController::class)
+        ->names([
+            'index' => 'vision-mission-values.index',
+            'create' => 'vision-mission-values.create',
+            'store' => 'vision-mission-values.store',
+            'show' => 'vision-mission-values.show',
+            'edit' => 'vision-mission-values.edit',
+            'update' => 'vision-mission-values.update',
+            'destroy' => 'vision-mission-values.destroy',
+        ]);
+
+    // Route khusus untuk mengambil data berdasarkan type
+    Route::get('api/vision-mission-values/{type}', [VisionMissionValueController::class, 'getByType'])
+        ->name('vision-mission-values.by-type');
+});
